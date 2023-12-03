@@ -1,0 +1,101 @@
+from random import randrange
+import graphics
+
+
+def get_credits(prompt):
+    while True:
+        try:
+            credits = int(input(prompt))
+            if credits not in [0, 20, 40, 60, 80, 100, 120]:
+                print("Out of range. Please enter credits in the range 0, 20, 40, 60, 80, 100, or 120.")
+                continue
+            return credits
+        except ValueError:
+            print("Integer required.")
+
+
+def predict_outcome(pass_credits, defer_credits, fail_credits):
+    total_credits = pass_credits + defer_credits + fail_credits
+
+    if total_credits != 120:
+        return "Total incorrect! Please try again."
+    if pass_credits == 120:
+        return "Progress"
+    elif pass_credits == 100:
+        return "trailer"
+    if fail_credits >= 80:
+        return "Exclude"
+    else:
+        return "retriever"
+
+
+def draw_histogram(outcomes_count):
+    win = graphics.GraphWin("Progression Histogram", 600, 600)
+    win.setBackground("white")
+
+    num_outcomes = len(outcomes_count)
+    total_count = sum(outcomes_count.values())
+    bar_width = max(800 // (2 * num_outcomes), 50)
+    x_position = 50
+
+    for outcome, count in outcomes_count.items():
+        bar_height = count * 11
+        bar_color = graphics.color_rgb(randrange(256), randrange(256), randrange(256))
+        bar = graphics.Rectangle(graphics.Point(x_position, 500),
+                                 graphics.Point(x_position + bar_width, 500 - bar_height))
+        bar.setFill(bar_color)
+        bar.draw(win)
+
+        label = graphics.Text(graphics.Point(x_position + bar_width / 2, 520), outcome)
+        label.draw(win)
+
+        count_label = graphics.Text(graphics.Point(x_position + bar_width / 2, 500 - bar_height - 20), str(count))
+        count_label.draw(win)
+
+        x_position += bar_width + 20
+    total_label = graphics.Text(graphics.Point(win.getWidth() / 2, 550), f"Total Outcomes: {total_count}")
+    total_label.setSize(14)
+    total_label.draw(win)
+
+    win.getMouse()
+    win.close()
+
+
+def main():
+    outcomes_count = {"Progress": 0, "trailer": 0, "retriever": 0, "Exclude": 0}
+    user_input = ""
+
+    while user_input.lower() not in ['q']:
+        print("Welcome to the progression outcome calculator!\n----------------------------------------------")
+        print(
+            "Enter your credits at pass, defer, and fail respectively.\n----------------------------------------------")
+        try:
+            pass_credits = get_credits("Please enter your credits at pass: ")
+            defer_credits = get_credits("Please enter your credits at defer: ")
+            fail_credits = get_credits("Please enter your credits at fail: ")
+            total_credits = pass_credits + defer_credits + fail_credits
+            if total_credits != 120:
+                print("Total incorrect! Please try again.")
+                continue
+            if total_credits == 120:
+                outcome = predict_outcome(pass_credits, defer_credits, fail_credits)
+                print(
+                    f"-------------------------------\n Progression outcome = {outcome}\n-------------------------------")
+                outcomes_count[outcome] += 1
+
+            user_input = ""  # Reset user_input to an empty string
+            while user_input.lower() not in ['y', 'q']:
+                user_input = input("Would you like to enter another set of data? Enter 'y' for yes or 'q' to quit: ")
+                if user_input.lower() == 'q':
+                    break
+
+        except ValueError:
+            print("Invalid input. Please enter valid numeric values.")
+            continue
+
+    draw_histogram(outcomes_count)
+
+
+
+if __name__ == "__main__":
+    main()
